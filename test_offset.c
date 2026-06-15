@@ -3,15 +3,13 @@
 #include <time.h>
 #include <unistd.h>
 
-int main(){
-    struct timespec ts_real, ts_fake;
-
-    for (int i = 0; i < 100; i++){
-        clock_gettime(CLOCK_REALTIME, &ts_fake);
-
-        double fake_time = ts_fake.tv_sec + ts_fake.tv_nsec / 1e9;
-
-        printf("Fake time: %f\n", fake_time);
+int main() {
+    for (int i = 0; i < 100; i++) {
+        struct timespec ts;
+        clock_gettime(CLOCK_REALTIME, &ts);
+        double t = ts.tv_sec + ts.tv_nsec * 1e-9;
+        printf("%d %.9f\n", i, t);
+        fflush(stdout);
         sleep(1);
     }
     return 0;
