@@ -7,7 +7,7 @@
 #include <sys/timex.h>
 #include <sys/time.h>
 
-#define MAX_OFFSETS 10000
+#define MAX_OFFSETS 100000
 
 double offsets[MAX_OFFSETS]; 
 int offset_count = 0; 
@@ -184,12 +184,12 @@ int ntp_gettime(struct ntptimeval *ntv) {
         ntv->time.tv_sec += (long)offset;
         ntv->time.tv_sec += (long)((offset - (long)offset) * 1e9);
 
-        if (ntv->time.tv_nsec >= 1000000L) {
+        if (ntv->time.tv_usec >= 1000000L) {
             ntv->time.tv_sec += 1;
-            ntv->time.tv_nsec -= 1000000L;
-        } else if (ntv->time.tv_nsec < 0) {
+            ntv->time.tv_usec -= 1000000L;
+        } else if (ntv->time.tv_usec < 0) {
             ntv->time.tv_sec -= 1;
-            ntv->time.tv_nsec += 1000000L;
+            ntv->time.tv_usec += 1000000L;
         }
     }
     in_hook = 0;
