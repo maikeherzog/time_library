@@ -51,7 +51,7 @@ static double get_offset(void){
 
     struct timespec ts;
     real_clock_gettime(CLOCK_REALTIME, &ts);
-    double elapsed = (double) (ts.tv_sec - start_time) + ts.tv_nsec * 1e9;
+    double elapsed = (double) (ts.tv_sec - start_time) + ts.tv_nsec / 1e9;
 
     int index = (int)elapsed;
     if (index >= offset_count -1) return offsets[offset_count -1];
@@ -119,6 +119,7 @@ int clock_gettime(clockid_t clk_id, struct timespec *tp) {
         long offset_nsec = (long)((offset - offset_sec) * 1e9);
 
         tp->tv_sec += offset_sec;
+        tp->tv_nsec += offset_nsec;
         if (tp->tv_nsec >= 1000000000L){
             tp->tv_sec += 1;
             tp->tv_nsec -= 1000000000L;
@@ -126,7 +127,6 @@ int clock_gettime(clockid_t clk_id, struct timespec *tp) {
             tp->tv_sec -= 1;
             tp->tv_nsec += 1000000000L;
         }
-        tp->tv_nsec += offset_nsec;
     }
     in_hook = 0;
     return ret;
@@ -182,7 +182,7 @@ int ntp_gettime(struct ntptimeval *ntv) {
     if (ret >= 0) {
         double offset = get_offset();
         ntv->time.tv_sec += (long)offset;
-        ntv->time.tv_sec += (long)((offset - (long)offset) * 1e9);
+        ntv->time.tv_usec += (long)((offset - (long)offset) * 1e6);
 
         if (ntv->time.tv_usec >= 1000000L) {
             ntv->time.tv_sec += 1;
