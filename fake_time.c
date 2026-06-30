@@ -12,7 +12,8 @@
 double offsets[MAX_OFFSETS]; 
 int offset_count = 0; 
 static int initialized = 0; 
-time_t start_time = 0; 
+// time_t start_time = 0;
+static struct timespec start_mono = {0, 0}; 
 
 static __thread int in_hook = 0; 
 
@@ -49,9 +50,15 @@ static void load_offsets(void){
 static double get_offset(void){
     if (offset_count == 0) return 0.0;
 
+    /*
     struct timespec ts;
     real_clock_gettime(CLOCK_REALTIME, &ts);
     double elapsed = (double) (ts.tv_sec - start_time) + ts.tv_nsec / 1e9;
+    */
+    struct timespec ts;
+    real_clock_gettime(CLOCK_MONOTONIC, &ts);
+
+    double elapsed = (double)(ts.tv_sec - start_mono.tv_sec) + (double)(ts.tv_nsec - start_mono.tv_nsec) / 1e9;
 
     int index = (int)elapsed;
     if (index >= offset_count -1) return offsets[offset_count -1];
@@ -74,10 +81,12 @@ static void init_if_needed(void) {
 
     load_offsets();
 
+    /*
     struct timespec ts;
     real_clock_gettime(CLOCK_REALTIME, &ts);
     start_time = ts.tv_sec;
-
+    */
+   real_clock_gettime(CLOCK_MONOTONIC, &start_mono);
 }
 
 /*
