@@ -156,7 +156,10 @@ int adjtimex(struct timex *tx) {
     int ret = real_adjtimex(tx);
     double offset = get_offset();
 
-    tx->offset = (long)(offset * 1e6);
+    if (tx->status & STA_NANO)
+        tx->offset = (long)(offset * 1e9);   // Nanosekunden
+    else
+        tx->offset = (long)(offset * 1e6);   // Mikrosekunden
     in_hook = 0;
     return ret;
 
@@ -171,7 +174,10 @@ int ntp_adjtime(struct timex *tx) {
     int ret = real_adjtimex(tx);
     double offset = get_offset();
 
-    tx -> offset = (long)(offset * 1e6);
+    if (tx->status & STA_NANO)
+        tx->offset = (long)(offset * 1e9);   // Nanosekunden
+    else
+        tx->offset = (long)(offset * 1e6);   // Mikrosekunden
     in_hook = 0;
     return ret;
 }
