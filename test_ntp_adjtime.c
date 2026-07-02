@@ -6,12 +6,13 @@ int main() {
 
     ntp_adjtime(&tx);
 
-    printf("Offset: %ld\n", tx.offset);
-    printf("Status: %d\n", tx.status);
-    printf("Frequency: %ld\n", tx.freq);
-    printf("Maxerror: %ld\n", tx.maxerror);
-    printf("Esterror: %ld\n", tx.esterror);
-    printf("Tolerance: %ld\n", tx.tolerance);
+    printf("return: %d\n", ret);
+    printf("offset: %ld\n", tx.offset);
+    printf("freq: %ld\n", tx.freq);
+    printf("maxerror: %ld\n", tx.maxerror);
+    printf("esterror: %ld\n", tx.esterror);
+    printf("status: %d\n", tx.status);
+    printf("constant: %ld\n", tx.constant);
 
     return 0;
 }
