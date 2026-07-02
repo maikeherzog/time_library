@@ -4,7 +4,7 @@
 int main() {
     struct timex tx;
 
-    ntp_adjtime(&tx);
+    int ret = ntp_adjtime(&tx);
 
     printf("return: %d\n", ret);
     printf("offset: %ld\n", tx.offset);
