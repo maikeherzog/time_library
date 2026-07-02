@@ -10,6 +10,8 @@
 #define MAX_OFFSETS 100000
 
 double offsets[MAX_OFFSETS]; 
+static double maxerrors[MAX_OFFSETS];   
+static double esterrors[MAX_OFFSETS];   
 int offset_count = 0; 
 static int initialized = 0; 
 // time_t start_time = 0;
@@ -38,13 +40,48 @@ static void load_offsets(void){
         return;
     }
 
-    double col1, col2;
-    while (offset_count < MAX_OFFSETS && fscanf(file, "%lf %lf", &col1, &col2) == 2) {
-        offsets[offset_count++] = col2;
+    double col_time, col_offset, col_max, col_est;
+    while (fscanf(file, "%lf %lf %lf %lf",
+              &col_time, &col_offset, &col_max, &col_est) == 4) {
+        if (offset_count < MAX_OFFSETS) {
+            offsets[offset_count]   = col_offset;
+            maxerrors[offset_count] = col_max;
+            esterrors[offset_count] = col_est;
+            offset_count++;
+        }
     }
     fclose(file);
     fprintf(stderr, "Loaded %d offsets from %s\n", offset_count, path);
 
+}
+
+static void get_errors(double *maxerror, double *esterror) {
+    if (offset_count == 0) {
+        *maxerror = 0.0;
+        *esterror = 0.0;
+        return;
+    }
+
+    struct timespec ts;
+    real_clock_gettime(CLOCK_MONOTONIC, &ts);
+    double elapsed = (double)(ts.tv_sec - start_mono.tv_sec)
+                   + (double)(ts.tv_nsec - start_mono.tv_nsec) / 1e9;
+
+    int index = (int)elapsed;
+    if (index >= offset_count - 1) {
+        *maxerror = maxerrors[offset_count - 1];
+        *esterror = esterrors[offset_count - 1];
+        return;
+    }
+    if (index < 0) {
+        *maxerror = maxerrors[0];
+        *esterror = esterrors[0];
+        return;
+    }
+
+    double frac = elapsed - index;
+    *maxerror = maxerrors[index] + frac * (maxerrors[index + 1] - maxerrors[index]);
+    *esterror = esterrors[index] + frac * (esterrors[index + 1] - esterrors[index]);
 }
 
 static double get_offset(void){
@@ -217,6 +254,11 @@ int ntp_gettime(struct ntptimeval *ntv) {
             ntv->time.tv_sec  -= 1;
             ntv->time.tv_usec += scale;
         }
+
+        double sim_max, sim_est;
+        get_errors(&sim_max, &sim_est);
+        ntv->maxerror = (long)(sim_max * 1e6);
+        ntv->esterror = (long)(sim_est * 1e6);
     }
 
     in_hook = 0;

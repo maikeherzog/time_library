@@ -6,10 +6,11 @@ int main() {
 
     ntp_gettime(&ntv);
 
-    printf("Zeit: %ld\n", ntv.time.tv_sec);
-    printf("Mikrosekunden: %ld\n", ntv.time.tv_usec);
-    printf("Maxerror: %ld\n", ntv.maxerror);
-    printf("Esterror: %ld\n", ntv.esterror);
+    printf("tv_sec: %ld\n", ntv.time.tv_sec);
+    printf("tv_usec: %ld\n", ntv.time.tv_usec);
+    printf("maxerror: %ld\n", ntv.maxerror);
+    printf("esterror: %ld\n", ntv.esterror);
+    printf("tai: %ld\n", ntv.tai);
 
     return 0;
 }
