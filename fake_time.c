@@ -11,7 +11,9 @@
 
 double offsets[MAX_OFFSETS]; 
 static double maxerrors[MAX_OFFSETS];   
-static double esterrors[MAX_OFFSETS];   
+static double esterrors[MAX_OFFSETS]; 
+static double freqs[MAX_OFFSETS];      
+static double constants[MAX_OFFSETS];    
 int offset_count = 0; 
 static int initialized = 0; 
 // time_t start_time = 0;
@@ -40,13 +42,15 @@ static void load_offsets(void){
         return;
     }
 
-    double col_time, col_offset, col_max, col_est;
-    while (fscanf(file, "%lf %lf %lf %lf",
-              &col_time, &col_offset, &col_max, &col_est) == 4) {
+    double c_time, c_off, c_max, c_est, c_freq, c_const;
+    while (fscanf(file, "%lf %lf %lf %lf %lf %lf",
+                &c_time, &c_off, &c_max, &c_est, &c_freq, &c_const) == 6) {
         if (offset_count < MAX_OFFSETS) {
-            offsets[offset_count]   = col_offset;
-            maxerrors[offset_count] = col_max;
-            esterrors[offset_count] = col_est;
+            offsets[offset_count]   = c_off;
+            maxerrors[offset_count] = c_max;
+            esterrors[offset_count] = c_est;
+            freqs[offset_count]     = c_freq;
+            constants[offset_count] = c_const;
             offset_count++;
         }
     }
@@ -55,10 +59,13 @@ static void load_offsets(void){
 
 }
 
-static void get_errors(double *maxerror, double *esterror) {
+static void get_errors(double *maxerror, double *esterror,
+                       double *freq, double *constant) {
     if (offset_count == 0) {
         *maxerror = 0.0;
         *esterror = 0.0;
+        *freq     = 0.0;
+        *constant = 0.0;
         return;
     }
 
@@ -71,17 +78,23 @@ static void get_errors(double *maxerror, double *esterror) {
     if (index >= offset_count - 1) {
         *maxerror = maxerrors[offset_count - 1];
         *esterror = esterrors[offset_count - 1];
+        *freq     = freqs[offset_count - 1];
+        *constant = constants[offset_count - 1];
         return;
     }
     if (index < 0) {
         *maxerror = maxerrors[0];
         *esterror = esterrors[0];
+        *freq     = freqs[0];
+        *constant = constants[0];
         return;
     }
 
     double frac = elapsed - index;
     *maxerror = maxerrors[index] + frac * (maxerrors[index + 1] - maxerrors[index]);
     *esterror = esterrors[index] + frac * (esterrors[index + 1] - esterrors[index]);
+    *freq     = freqs[index]     + frac * (freqs[index + 1]     - freqs[index]);
+    *constant = constants[index] + frac * (constants[index + 1] - constants[index]);
 }
 
 static double get_offset(void){
@@ -197,6 +210,14 @@ int adjtimex(struct timex *tx) {
         tx->offset = (long)(offset * 1e9);   // Nanosekunden
     else
         tx->offset = (long)(offset * 1e6);   // Mikrosekunden
+    
+    double sim_max, sim_est, sim_freq, sim_const;
+    get_errors(&sim_max, &sim_est, &sim_freq, &sim_const);
+    tx->maxerror = (long)(sim_max * 1e6);
+    tx->esterror = (long)(sim_est * 1e6);
+    tx->freq     = (long)sim_freq;      
+    tx->constant = (long)sim_const;
+    
     in_hook = 0;
     return ret;
 
@@ -215,6 +236,14 @@ int ntp_adjtime(struct timex *tx) {
         tx->offset = (long)(offset * 1e9);   // Nanosekunden
     else
         tx->offset = (long)(offset * 1e6);   // Mikrosekunden
+    
+    double sim_max, sim_est, sim_freq, sim_const;
+    get_errors(&sim_max, &sim_est, &sim_freq, &sim_const);
+    tx->maxerror = (long)(sim_max * 1e6);
+    tx->esterror = (long)(sim_est * 1e6);
+    tx->freq     = (long)sim_freq;      // schon in timex-Einheit
+    tx->constant = (long)sim_const;
+    
     in_hook = 0;
     return ret;
 }
