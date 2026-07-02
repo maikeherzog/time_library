@@ -26,6 +26,9 @@ static time_t (*real_time)(time_t *) = NULL;
 static int   (*real_adjtimex)(struct timex *) = NULL;
 static int   (*real_ntp_gettime)(struct ntptimeval *) = NULL;
 
+// Zusatz:
+static int (*real_gettimeofday)(struct timeval *, void *) = NULL;
+
 /* Column 2 from offset.log*/
 static void load_offsets(void){
 
@@ -128,6 +131,9 @@ static void init_if_needed(void) {
     real_time = dlsym(RTLD_NEXT, "time");
     real_adjtimex = dlsym(RTLD_NEXT, "adjtimex");
     real_ntp_gettime = dlsym(RTLD_NEXT, "ntp_gettime");
+
+    // Zusätzlich:
+    real_gettimeofday = dlsym(RTLD_NEXT, "gettimeofday");
 
     load_offsets();
 
@@ -296,6 +302,31 @@ int ntp_gettime(struct ntptimeval *ntv) {
         ntv->esterror = (long)(sim_est * 1e6);
     }
 
+    in_hook = 0;
+    return ret;
+}
+
+// Zusatz:
+int gettimeofday(struct timeval *tv, void *tz) {
+
+    if (in_hook) return real_gettimeofday(tv, tz); // stop recursion
+    in_hook = 1;
+    init_if_needed();
+
+    int ret = real_gettimeofday(tv, tz);
+    if (ret == 0 && tv != NULL) {
+        double offset = get_offset();
+        tv->tv_sec  += (long)offset;
+        tv->tv_usec += (long)((offset - (long)offset) * 1e6);
+
+        if (tv->tv_usec >= 1000000L) {
+            tv->tv_sec  += 1;
+            tv->tv_usec -= 1000000L;
+        } else if (tv->tv_usec < 0) {
+            tv->tv_sec  -= 1;
+            tv->tv_usec += 1000000L;
+        }
+    }
     in_hook = 0;
     return ret;
 }
