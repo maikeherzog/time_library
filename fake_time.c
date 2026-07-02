@@ -194,19 +194,37 @@ int ntp_gettime(struct ntptimeval *ntv) {
     init_if_needed();
 
     int ret = real_ntp_gettime(ntv);
+    fprintf(stderr, "VORHER:  ret=%d tv_sec=%ld tv_usec=%ld\n",
+            ret, ntv->time.tv_sec, ntv->time.tv_usec);
+
     if (ret >= 0) {
         double offset = get_offset();
-        ntv->time.tv_sec += (long)offset;
-        ntv->time.tv_usec += (long)((offset - (long)offset) * 1e6);
 
-        if (ntv->time.tv_usec >= 1000000L) {
-            ntv->time.tv_sec += 1;
-            ntv->time.tv_usec -= 1000000L;
+        // STA_NANO-Status separat ueber adjtimex abfragen,
+        // da ntptimeval selbst kein status-Feld besitzt
+        struct timex tx;
+        tx.modes = 0;                 
+        real_adjtimex(&tx);
+        long scale = (tx.status & STA_NANO) ? 1000000000L : 1000000L;
+
+        fprintf(stderr, "scale=%ld (STA_NANO %s)\n",
+                scale, (tx.status & STA_NANO) ? "gesetzt" : "nicht gesetzt");
+
+        ntv->time.tv_sec  += (long)offset;
+        ntv->time.tv_usec += (long)((offset - (long)offset) * scale);
+
+        if (ntv->time.tv_usec >= scale) {
+            ntv->time.tv_sec  += 1;
+            ntv->time.tv_usec -= scale;
         } else if (ntv->time.tv_usec < 0) {
-            ntv->time.tv_sec -= 1;
-            ntv->time.tv_usec += 1000000L;
+            ntv->time.tv_sec  -= 1;
+            ntv->time.tv_usec += scale;
         }
     }
+
+    fprintf(stderr, "NACHHER: tv_sec=%ld tv_usec=%ld\n",
+            ntv->time.tv_sec, ntv->time.tv_usec);
+
     in_hook = 0;
     return ret;
 }
