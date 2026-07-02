@@ -207,9 +207,6 @@ int ntp_gettime(struct ntptimeval *ntv) {
         real_adjtimex(&tx);
         long scale = (tx.status & STA_NANO) ? 1000000000L : 1000000L;
 
-        fprintf(stderr, "scale=%ld (STA_NANO %s)\n",
-                scale, (tx.status & STA_NANO) ? "gesetzt" : "nicht gesetzt");
-
         ntv->time.tv_sec  += (long)offset;
         ntv->time.tv_usec += (long)((offset - (long)offset) * scale);
 
@@ -221,9 +218,6 @@ int ntp_gettime(struct ntptimeval *ntv) {
             ntv->time.tv_usec += scale;
         }
     }
-
-    fprintf(stderr, "NACHHER: tv_sec=%ld tv_usec=%ld\n",
-            ntv->time.tv_sec, ntv->time.tv_usec);
 
     in_hook = 0;
     return ret;
