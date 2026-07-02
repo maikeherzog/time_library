@@ -7,7 +7,7 @@ int main() {
     int ret = adjtimex(&tx);
 
     printf("return: %d\n", ret);
-    printf("offset (us): %ld\n", tx.offset);
+    printf("offset: %ld\n", tx.offset);
     printf("freq: %ld\n", tx.freq);
     printf("maxerror: %ld\n", tx.maxerror);
     printf("esterror: %ld\n", tx.esterror);
