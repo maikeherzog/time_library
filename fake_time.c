@@ -270,8 +270,7 @@ int ntp_gettime(struct ntptimeval *ntv) {
     init_if_needed();
 
     int ret = real_ntp_gettime(ntv);
-    fprintf(stderr, "VORHER:  ret=%d tv_sec=%ld tv_usec=%ld\n",
-            ret, ntv->time.tv_sec, ntv->time.tv_usec);
+
 
     if (ret >= 0) {
         double offset = get_offset();
