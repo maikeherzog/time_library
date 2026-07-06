@@ -17,3 +17,4 @@ ntp.drift
 ntpstats/
 ntp_stats_sim/
 ntp_stats_sim3/
+sim.conf
