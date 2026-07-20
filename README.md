@@ -2,6 +2,21 @@
 
 Shared Library, die simulierte NTP-Bedingungen mittels `LD_PRELOAD` in Testprogramme einspielt.
 
+## 0. Voraussetzungen
+
+clknetsim muss separat installiert werden:
+```bash
+git clone https://gitlab.com/chrony/clknetsim
+cd clknetsim
+make
+```
+Zusätzlich werden `chronyd` und `ntpd` (z. B. Version 4.2.8p18) benötigt.
+
+Der in `client_ntp.conf` über `statsdir` angegebene Ordner für die Statistikdateien muss vorher angelegt werden:
+```bash
+mkdir -p ntpstats
+```
+
 ## 1. Simulation mit clknetsim ausführen
 
 Configs (in `clknetsim/`):
