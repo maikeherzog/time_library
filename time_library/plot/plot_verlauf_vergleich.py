@@ -3,8 +3,6 @@ import numpy as np
 from matplotlib.ticker import MultipleLocator
 
 def load_soll_offset(path):
-    """Liest den Offset (Spalte 2) aus der erweiterten Logdatei (6 Spalten).
-    Der Zeilenindex entspricht der Sekunde. Rueckgabe in Millisekunden."""
     vals = []
     with open(path) as f:
         for line in f:
@@ -15,7 +13,6 @@ def load_soll_offset(path):
     return np.array(vals)
 
 def load_verlauf(path):
-    """Liest die test_verlauf-Ausgabe (Zeit, angewendeter Offset in ms)."""
     t, v = [], []
     with open(path) as f:
         for line in f:

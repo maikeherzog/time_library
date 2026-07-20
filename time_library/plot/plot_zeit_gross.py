@@ -3,7 +3,6 @@ import numpy as np
 from matplotlib.ticker import MultipleLocator
 
 def load_zeitvergleich(path):
-    """Liest die test_zeitvergleich-Ausgabe (Zeit, echte Zeit, manipulierte Zeit)."""
     t, real, manip = [], [], []
     with open(path) as f:
         for line in f:

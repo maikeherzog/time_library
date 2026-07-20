@@ -251,7 +251,7 @@ int ntp_adjtime(struct timex *tx) {
     get_errors(&sim_max, &sim_est, &sim_freq, &sim_const);
     tx->maxerror = (long)(sim_max * 1e6);
     tx->esterror = (long)(sim_est * 1e6);
-    tx->freq     = (long)sim_freq;      // schon in timex-Einheit
+    tx->freq     = (long)sim_freq;      
     tx->constant = (long)sim_const;
     
     in_hook = 0;
@@ -293,10 +293,6 @@ int ntp_gettime(struct ntptimeval *ntv) {
             ntv->time.tv_usec += scale;
         }
 
-        // freq und constant werden hier mit abgefragt, aber nicht gesetzt:
-        // die ntptimeval-Struktur besitzt diese Felder nicht (nur time,
-        // maxerror, esterror, tai). Sie werden in adjtimex()/ntp_adjtime()
-        // gesetzt, deren timex-Struktur die Felder enthaelt.
         double sim_max, sim_est, sim_freq, sim_const;
         get_errors(&sim_max, &sim_est, &sim_freq, &sim_const);
         (void)sim_freq;  // nicht verwendet
