@@ -17,7 +17,7 @@ ntp.drift
 ntpstats/
 ntp_stats_sim/
 ntp_stats_sim3/
-sim.conf
+/sim.conf
 ntp.conf
 sim3.conf
 plot_offset.py
