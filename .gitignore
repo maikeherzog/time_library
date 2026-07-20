@@ -18,3 +18,8 @@ ntpstats/
 ntp_stats_sim/
 ntp_stats_sim3/
 sim.conf
+ntp.conf
+sim3.conf
+plot_offset.py
+alt/
+*.svg
